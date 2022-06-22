@@ -45,6 +45,7 @@ void loop() {
   digitalWrite(led1,LOW);
   break;
 
+
    
   }
 
@@ -66,12 +67,12 @@ float dhtRead()
     hum = dht.readHumidity();
     temp= dht.readTemperature();
 //    Print temp and humidity values to serial monitor
-    Serial.print("Humidity: ");
-    Serial.print(hum);
-    Serial.print(" %, Temp: ");
-    Serial.print(temp);
-    Serial.println(" Celsius");
-    delay(1000); //Delay 2 sec.
+    Serial.print("Humidity= ");
+    Serial.println(hum);
+    Serial.print("Temp= ");
+    Serial.println(temp);
+    
+    delay(1000); //Delay 1 sec.
   
   
   }
