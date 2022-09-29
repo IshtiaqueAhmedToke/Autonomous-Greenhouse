@@ -1,48 +1,66 @@
+#include <dht.h>
 
-#include<DHT.h>
 
-
+#define dht_apin A0 // dht pin
 byte serialA;
 
-const int led1 = 8;
+int analogPin = A3; //moisture sensor
+int val = 0;  // variable to store the value read
+int moisturePercentage = 0;
+const int  dry = 599;
+const int wet = 216;
 
-//Constants
-#define DHTPIN 2     // what pin we're connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302)
-DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
-const byte MQ4_Pin = A0;
-const int R_0 = 945;
+
+ int relay1 = 2; 
+ int relay2 = 3;
  
-//Variables
-int chk;
-float hum;  //Stores humidity value
-float temp; //Stores temperature value
-
-
-
-
-void setup() {
-Serial.begin(9600);
-pinMode(led1,OUTPUT);
- dht.begin();
-
-
-
-
+ dht DHT;
+ 
+void setup(){
+ 
+  Serial.begin(9600);
+ pinMode(relay1,OUTPUT);
+ pinMode(relay2, OUTPUT);
+ 
+ 
+ 
 }
+ 
+void loop(){
+  
+ 
+    DHT.read11(dht_apin);
+    val = analogRead(analogPin);  
+    moisturePercentage = map(val,wet,dry,100,0);
+    
 
-void loop() {
+
+
+    Serial.print("Humidity= ");
+    Serial.println(DHT.humidity);
+  
+    Serial.print("Temperature= ");
+    Serial.println(DHT.temperature); 
+
+    Serial.print("SoilMoisture=  ");
+    Serial.println(  moisturePercentage);      
+      delay(400);
+       // debug value
+    
+
  if (Serial.available() > 0) {serialA = Serial.read();Serial.println(serialA);} 
 
  switch(serialA)
  {
   
   case '1':
-  digitalWrite(led1,HIGH);
+  digitalWrite(relay1,HIGH);
+  digitalWrite(relay2,HIGH);
   break;
 
   case '2':
-  digitalWrite(led1,LOW);
+  digitalWrite(relay1,LOW);
+  digitalWrite(relay2,LOW);
   break;
 
 
@@ -51,28 +69,5 @@ void loop() {
 
 
 
-dhtRead();
- 
-
- 
  
 }
-
-
-
-float dhtRead()
-{
-  
-  //Read data and store it to variables hum and temp
-    hum = dht.readHumidity();
-    temp= dht.readTemperature();
-//    Print temp and humidity values to serial monitor
-    Serial.print("Humidity= ");
-    Serial.println(hum);
-    Serial.print("Temp= ");
-    Serial.println(temp);
-    
-    delay(1000); //Delay 1 sec.
-  
-  
-  }
