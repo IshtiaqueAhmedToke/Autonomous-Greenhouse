@@ -1,0 +1,2141 @@
+[
+    {
+        "id": "6881c7bc66a39e34",
+        "type": "tab",
+        "label": "HOME",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3f9ab09e934547b9",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "[{\"id\":\"782b06fb.cc1df8\",\"type\":\"comment\",\"z\":\"74f191ff.db063\",\"name\":\"Auto Logger archiving\",\"info\":\"Generate file name that are to be archived.\\n\\nIdea is that this generates a list of file names for let's say between current day-5 days to current day-10 days, so all files that are 5-10 days old will get archived. And this can be executed daily or weekly, and the interval allows some overlap (e.g. the program fails, Node-Red was down, etc.)\\n\\nInject node should contain a JSON:\\n{    \\n    \\\"start\\\": 20,    \\n    \\\"end\\\": 10\\n}\\n\\nThis will generate file names D-20 to D-10 days.\\nStart should be greather than end!\\n\",\"x\":140,\"y\":3600,\"wires\":[]},{\"id\":\"f14e2f71.1ad87\",\"type\":\"function\",\"z\":\"74f191ff.db063\",\"name\":\"Maplin Filename generator\",\"func\":\"let output = [];\\nfor (var i=msg.payload.end;i<msg.payload.start;i++) {\\n    \\n    // calculate the date\\n    let now = new Date();\\n    now.setTime(now.getTime() - 1000*60*60*24*i);\\n    let yyyy = now.getFullYear();\\n    let mm = now.getMonth() < 9 ? \\\"0\\\" + (now.getMonth() + 1) : (now.getMonth() + 1); // getMonth() is zero-based\\n    let dd  = now.getDate() < 10 ? \\\"0\\\" + now.getDate() : now.getDate();\\n    let hh = now.getHours() < 10 ? \\\"0\\\" + now.getHours() : now.getHours();\\n    let mmm  = now.getMinutes() < 10 ? \\\"0\\\" + now.getMinutes() : now.getMinutes();\\n    let ss  = now.getSeconds() < 10 ? \\\"0\\\" + now.getSeconds() : now.getSeconds();\\n    \\n    let newfile = { \\\"topic\\\": \\\"archive\\\", \\\"payload\\\": \\\"\\\"};\\n    // Generate out file name pattern\\n    newfile.fname = \\\"maplin_\\\"+ yyyy + mm + dd + \\\".csv\\\";\\n    // Full filename with path \\n    newfile.filename = \\\"/home/pi/datalog/\\\"+ newfile.fname;\\n    \\n    // Shell script only needs the filename without the path\\n    newfile.payload = newfile.fname;\\n    output.push(newfile);\\n\\n}\\n\\nreturn [output];\",\"outputs\":1,\"noerr\":0,\"initialize\":\"\",\"finalize\":\"\",\"x\":400,\"y\":3680,\"wires\":[[\"5ba61ce5.11d8a4\"]]},{\"id\":\"b57ab78e.cf1658\",\"type\":\"function\",\"z\":\"74f191ff.db063\",\"name\":\"Weather Station Filename generator\",\"func\":\"let output = [];\\nfor (var i=msg.payload.end;i<msg.payload.start;i++) {\\n    \\n    // calculate the date\\n    let now = new Date();\\n    now.setTime(now.getTime() - 1000*60*60*24*i);\\n    let yyyy = now.getFullYear();\\n    let mm = now.getMonth() < 9 ? \\\"0\\\" + (now.getMonth() + 1) : (now.getMonth() + 1); // getMonth() is zero-based\\n    let dd  = now.getDate() < 10 ? \\\"0\\\" + now.getDate() : now.getDate();\\n    let hh = now.getHours() < 10 ? \\\"0\\\" + now.getHours() : now.getHours();\\n    let mmm  = now.getMinutes() < 10 ? \\\"0\\\" + now.getMinutes() : now.getMinutes();\\n    let ss  = now.getSeconds() < 10 ? \\\"0\\\" + now.getSeconds() : now.getSeconds();\\n    \\n    let newfile = { \\\"topic\\\": \\\"archive\\\", \\\"payload\\\": \\\"\\\"};\\n    // Generate out file name pattern\\n    newfile.fname = \\\"weather_sensor_\\\"+ yyyy + mm + dd + \\\".csv\\\";\\n    // Full filename with path \\n    newfile.filename = \\\"/home/pi/datalog/\\\"+ newfile.fname;\\n    \\n    // Shell script only needs the filename without the path\\n    newfile.payload = newfile.fname;\\n    output.push(newfile);\\n\\n}\\n\\nreturn [output];\",\"outputs\":1,\"noerr\":0,\"initialize\":\"\",\"finalize\":\"\",\"x\":430,\"y\":3740,\"wires\":[[\"5ba61ce5.11d8a4\"]]},{\"id\":\"5e47f3b4.7c779c\",\"type\":\"inject\",\"z\":\"74f191ff.db063\",\"name\":\"Start\",\"props\":[{\"p\":\"payload\",\"v\":\"{\\\"start\\\":20,\\\"end\\\":10}\",\"vt\":\"json\"},{\"p\":\"topic\",\"v\":\"\",\"vt\":\"string\"}],\"repeat\":\"\",\"crontab\":\"40 02 * * *\",\"once\":false,\"onceDelay\":0.1,\"topic\":\"\",\"payload\":\"{\\\"start\\\":20,\\\"end\\\":10}\",\"payloadType\":\"json\",\"x\":130,\"y\":3700,\"wires\":[[\"f14e2f71.1ad87\",\"b57ab78e.cf1658\"]]},{\"id\":\"ad87fee.c53d5\",\"type\":\"exec\",\"z\":\"74f191ff.db063\",\"command\":\"/home/pi/log_upload.sh\",\"addpay\":true,\"append\":\"\",\"useSpawn\":\"false\",\"timer\":\"\",\"oldrc\":false,\"name\":\"File upload\",\"x\":730,\"y\":3680,\"wires\":[[],[],[\"5f0f09f4.a09208\"]]},{\"id\":\"5f0f09f4.a09208\",\"type\":\"switch\",\"z\":\"74f191ff.db063\",\"name\":\"Return code\",\"property\":\"payload.code\",\"propertyType\":\"msg\",\"rules\":[{\"t\":\"neq\",\"v\":\"0\",\"vt\":\"num\"},{\"t\":\"eq\",\"v\":\"0\",\"vt\":\"num\"}],\"checkall\":\"true\",\"repair\":false,\"outputs\":2,\"x\":1010,\"y\":3780,\"wires\":[[],[\"639dcab5.1028b4\"]]},{\"id\":\"49210be0.0dbbe4\",\"type\":\"exec\",\"z\":\"74f191ff.db063\",\"command\":\"sudo rm \",\"addpay\":true,\"append\":\"\",\"useSpawn\":\"false\",\"timer\":\"\",\"oldrc\":false,\"name\":\"File delete\",\"x\":1150,\"y\":3680,\"wires\":[[],[],[\"1fee1de5.695e32\"]]},{\"id\":\"639dcab5.1028b4\",\"type\":\"change\",\"z\":\"74f191ff.db063\",\"name\":\"Get filename\",\"rules\":[{\"t\":\"set\",\"p\":\"payload\",\"pt\":\"msg\",\"to\":\"filename\",\"tot\":\"msg\"}],\"action\":\"\",\"property\":\"\",\"from\":\"\",\"to\":\"\",\"reg\":false,\"x\":970,\"y\":3680,\"wires\":[[\"49210be0.0dbbe4\"]]},{\"id\":\"1fee1de5.695e32\",\"type\":\"switch\",\"z\":\"74f191ff.db063\",\"name\":\"Return code\",\"property\":\"payload.code\",\"propertyType\":\"msg\",\"rules\":[{\"t\":\"neq\",\"v\":\"0\",\"vt\":\"num\"},{\"t\":\"eq\",\"v\":\"0\",\"vt\":\"num\"}],\"checkall\":\"true\",\"outputs\":2,\"x\":1370,\"y\":3700,\"wires\":[[],[]]},{\"id\":\"5ba61ce5.11d8a4\",\"type\":\"delay\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"pauseType\":\"rate\",\"timeout\":\"5\",\"timeoutUnits\":\"seconds\",\"rate\":\"1\",\"nbRateUnits\":\"5\",\"rateUnits\":\"second\",\"randomFirst\":\"1\",\"randomLast\":\"5\",\"randomUnits\":\"seconds\",\"drop\":false,\"x\":660,\"y\":3880,\"wires\":[[\"ad87fee.c53d5\"]]},{\"id\":\"9da5c02.66c844\",\"type\":\"comment\",\"z\":\"74f191ff.db063\",\"name\":\"log_upload.sh\",\"info\":\"ftp -inv 192.168.1.x << EOF\\n    user <username> <password>\\n    binary\\n    cd backup/logs\\n    lcd /home/pi/datalog\\n    put $1\\nEOF\",\"x\":710,\"y\":3620,\"wires\":[]},{\"id\":\"f79c29b7.055068\",\"type\":\"comment\",\"z\":\"74f191ff.db063\",\"name\":\"Auto Logger\",\"info\":\"\",\"x\":150,\"y\":3960,\"wires\":[]},{\"id\":\"4c8ae605.33be88\",\"type\":\"function\",\"z\":\"74f191ff.db063\",\"name\":\"Set data\",\"func\":\"var now = new Date();\\n\\nmsg.payload = {\\n    \\\"timestamp\\\" : now.getTime(),\\n    \\\"temperature\\\" : msg.msg433.TEMP,\\n    \\\"humidity\\\" : msg.msg433.HUM\\n}\\nreturn msg;\",\"outputs\":1,\"noerr\":0,\"x\":240,\"y\":4020,\"wires\":[[\"f46f569e.ff1a08\"]]},{\"id\":\"f46f569e.ff1a08\",\"type\":\"function\",\"z\":\"74f191ff.db063\",\"name\":\"Filename generator\",\"func\":\"// Get the current time and convert it to text\\nvar now = new Date();\\nvar yyyy = now.getFullYear();\\nvar mm = now.getMonth() < 9 ? \\\"0\\\" + (now.getMonth() + 1) : (now.getMonth() + 1); // getMonth() is zero-based\\nvar dd  = now.getDate() < 10 ? \\\"0\\\" + now.getDate() : now.getDate();\\nvar hh = now.getHours() < 10 ? \\\"0\\\" + now.getHours() : now.getHours();\\nvar mmm  = now.getMinutes() < 10 ? \\\"0\\\" + now.getMinutes() : now.getMinutes();\\nvar ss  = now.getSeconds() < 10 ? \\\"0\\\" + now.getSeconds() : now.getSeconds();\\n\\n// Generate out file name pattern\\nmsg.fname = \\\"maplin_\\\"+ yyyy + mm + dd + \\\".csv\\\";\\n// Full filename with path for the file node later\\nmsg.filename = \\\"/home/pi/datalog/\\\"+ msg.fname;\\n\\n// We save the current payload into a different place on the msg object\\nmsg.filecontent = msg.payload;\\n\\n// We are passing the file name search pattern to fs node to tell us if the file exists or not\\nmsg.payload = {\\\"pattern\\\":msg.fname};\\n\\nnode.status({fill:\\\"blue\\\",shape:\\\"ring\\\",text:msg.fname});\\nreturn msg;\",\"outputs\":1,\"noerr\":0,\"x\":210,\"y\":4140,\"wires\":[[\"fa6936f.7758dc8\"]]},{\"id\":\"fa6936f.7758dc8\",\"type\":\"fs-file-lister\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"start\":\"/home/pi/datalog/\",\"pattern\":\"\",\"folders\":\"*\",\"hidden\":true,\"lstype\":\"files\",\"path\":true,\"single\":true,\"depth\":0,\"stat\":true,\"showWarnings\":false,\"x\":400,\"y\":4140,\"wires\":[[\"a96494a5.b0f4c8\",\"3db97537.b889ea\"]]},{\"id\":\"a96494a5.b0f4c8\",\"type\":\"debug\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"active\":false,\"tosidebar\":true,\"console\":false,\"tostatus\":false,\"complete\":\"false\",\"x\":570,\"y\":4060,\"wires\":[]},{\"id\":\"3db97537.b889ea\",\"type\":\"switch\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"property\":\"$count(msg.payload)\",\"propertyType\":\"jsonata\",\"rules\":[{\"t\":\"eq\",\"v\":\"0\",\"vt\":\"num\"},{\"t\":\"else\"}],\"checkall\":\"true\",\"repair\":false,\"outputs\":2,\"x\":550,\"y\":4140,\"wires\":[[\"3cb887e8.e533a8\"],[\"f3ba1c7a.54ef5\"]]},{\"id\":\"fe6f74d5.674ec8\",\"type\":\"csv\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"sep\":\",\",\"hdrin\":\"\",\"hdrout\":true,\"multi\":\"one\",\"ret\":\"\\\\n\",\"temp\":\"timestamp,temperature,humidity\",\"skip\":\"0\",\"strings\":true,\"x\":890,\"y\":4120,\"wires\":[[\"3a8ebdf3.772cc2\"]]},{\"id\":\"3a8ebdf3.772cc2\",\"type\":\"file\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"filename\":\"\",\"appendNewline\":false,\"createDir\":true,\"overwriteFile\":\"false\",\"encoding\":\"none\",\"x\":1050,\"y\":4120,\"wires\":[[]]},{\"id\":\"f226a86d.9bdfb8\",\"type\":\"csv\",\"z\":\"74f191ff.db063\",\"name\":\"\",\"sep\":\",\",\"hdrin\":\"\",\"hdrout\":false,\"multi\":\"one\",\"ret\":\"\\\\n\",\"temp\":\"timestamp,temperature,humidity\",\"skip\":\"0\",\"strings\":true,\"x\":890,\"y\":4160,\"wires\":[[\"3a8ebdf3.772cc2\"]]},{\"id\":\"3cb887e8.e533a8\",\"type\":\"change\",\"z\":\"74f191ff.db063\",\"name\":\"Get file content\",\"rules\":[{\"t\":\"set\",\"p\":\"payload\",\"pt\":\"msg\",\"to\":\"filecontent\",\"tot\":\"msg\"}],\"action\":\"\",\"property\":\"\",\"from\":\"\",\"to\":\"\",\"reg\":false,\"x\":720,\"y\":4120,\"wires\":[[\"fe6f74d5.674ec8\"]]},{\"id\":\"f3ba1c7a.54ef5\",\"type\":\"change\",\"z\":\"74f191ff.db063\",\"name\":\"Get file content\",\"rules\":[{\"t\":\"set\",\"p\":\"payload\",\"pt\":\"msg\",\"to\":\"filecontent\",\"tot\":\"msg\"}],\"action\":\"\",\"property\":\"\",\"from\":\"\",\"to\":\"\",\"reg\":false,\"x\":720,\"y\":4160,\"wires\":[[\"f226a86d.9bdfb8\"]]}]",
+        "env": []
+    },
+    {
+        "id": "2cf27611480fcd80",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a616c11273304119",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-dark",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#457709",
+                "baseFont": "Gill Sans,Geneva,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#5bc021",
+                "baseFont": "Trebuchet MS,Helvetica,sans-serif",
+                "reset": false
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#097479",
+                    "value": "#457709",
+                    "edited": true
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#457709",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#111111",
+                    "edited": true
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#6ebe0e",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#555555",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#eeeeee",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#457709",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#333333",
+                    "edited": true
+                },
+                "base-font": {
+                    "value": "Gill Sans,Geneva,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "HOME MONITOR",
+            "hideToolbar": "false",
+            "allowSwipe": "menu",
+            "lockMenu": "false",
+            "allowTempTheme": "false",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "308c817987aafca8",
+        "type": "ui_group",
+        "name": "AIR TEMPERATURE AND HUMIDITY",
+        "tab": "5b389d7b79d03d02",
+        "order": 1,
+        "disp": true,
+        "width": "10",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "5b389d7b79d03d02",
+        "type": "ui_tab",
+        "name": "PLANT MONITORING SYSTEM",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "e25d4a8d798a139b",
+        "type": "ui_tab",
+        "name": "Chart",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "fd7e827ac58f33b1",
+        "type": "ui_tab",
+        "name": "SWITCH",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "8d0384e8450d5d01",
+        "type": "ui_group",
+        "name": "POT3",
+        "tab": "5b389d7b79d03d02",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "d379a2c2c33a7be7",
+        "type": "ui_group",
+        "name": "OUTPUT DATABASE READING",
+        "tab": "fdd1d3a9a7846bf5",
+        "order": 5,
+        "disp": true,
+        "width": "10",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "0e15aac8cefdd0d7",
+        "type": "ui_group",
+        "name": "CHART",
+        "tab": "e25d4a8d798a139b",
+        "order": 1,
+        "disp": true,
+        "width": "20",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "f014eac83c33b421",
+        "type": "config-log",
+        "logname": "",
+        "logdir": "",
+        "stamp": "local",
+        "logstyle": "plain",
+        "logrotate": false,
+        "logcompress": false,
+        "logrotatecount": "5",
+        "logsize": "1000"
+    },
+    {
+        "id": "1beeaf42ed8d302d",
+        "type": "serial-port",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "44db0a177c11cea0",
+        "type": "ui_group",
+        "name": "POT1",
+        "tab": "5b389d7b79d03d02",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c2014e6c79597f0d",
+        "type": "serial-port",
+        "serialport": "/dev/ttyAMA0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "de1b29ade7441583",
+        "type": "serial-port",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "8a9cdc827b31eabf",
+        "type": "serial-port",
+        "serialport": "/dev/ttyS0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "e82760a53f7f3b11",
+        "type": "serial-port",
+        "serialport": "/dev/ttyACM1",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "690fafa7eca1c0f2",
+        "type": "serial-port",
+        "serialport": "",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "60b1b6a9f71a1c72",
+        "type": "serial-port",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "baf1e583d41af752",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "test",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "bc4ab5cb2a050021",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "test",
+        "name": "test",
+        "usetls": true,
+        "tls": "d50d0c9f.31e858",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": false
+    },
+    {
+        "id": "d50d0c9f.31e858",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": false
+    },
+    {
+        "id": "a222b04e11ef2e47",
+        "type": "influxdb",
+        "hostname": "192.168.0.165",
+        "port": "8086",
+        "protocol": "http",
+        "database": "Humidity",
+        "name": "Humidity_database",
+        "usetls": false,
+        "tls": "d50d0c9f.31e858",
+        "influxdbVersion": "1.x",
+        "url": "http://192.168.0.165:8086/humidity",
+        "rejectUnauthorized": false
+    },
+    {
+        "id": "0d3f80d1c76fa450",
+        "type": "influxdb",
+        "hostname": "192.168.0.165",
+        "port": "8086",
+        "protocol": "http",
+        "database": "moist",
+        "name": "moist_db",
+        "usetls": false,
+        "tls": "d50d0c9f.31e858",
+        "influxdbVersion": "1.x",
+        "url": "http://192.168.0.165:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "dfb1f955897eb056",
+        "type": "ui_group",
+        "name": "POT2",
+        "tab": "5b389d7b79d03d02",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "fdd1d3a9a7846bf5",
+        "type": "ui_tab",
+        "name": "OUTPUT READING ",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "9f8b81628a7783d9",
+        "type": "ui_group",
+        "name": "pH",
+        "tab": "5b389d7b79d03d02",
+        "order": 5,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "da5be6d1c181574b",
+        "type": "ui_tab",
+        "name": "Switch And CPU Temperature",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "a739265181886bc6",
+        "type": "ui_group",
+        "name": "Switches and CPU Temperature",
+        "tab": "5b389d7b79d03d02",
+        "order": 5,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "acf780cd0f6e6b88",
+        "type": "ui_switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "label": "Water Pump Switch",
+        "tooltip": "",
+        "group": "a739265181886bc6",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "2",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "1",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 290,
+        "y": 1020,
+        "wires": [
+            [
+                "562fd1ff74dc9cba"
+            ]
+        ]
+    },
+    {
+        "id": "b48bceac49692008",
+        "type": "file",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "filename": "/home/toke/Desktop/humidity.txt",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1490,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "562fd1ff74dc9cba",
+        "type": "serial out",
+        "z": "6881c7bc66a39e34",
+        "name": "MEGA3",
+        "serial": "1beeaf42ed8d302d",
+        "x": 720,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "5bd9bea2f8a814db",
+        "type": "file",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "filename": "/home/toke/Desktop/humidity",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1480,
+        "y": 540,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "94d79ba0069ad742",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "Humidity=",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "Temperature=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 290,
+        "y": 320,
+        "wires": [
+            [
+                "7cde858e58123c0e"
+            ],
+            [
+                "33b5cd56616d230a"
+            ]
+        ]
+    },
+    {
+        "id": "7cde858e58123c0e",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "Humidity",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "Humidity=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 460,
+        "y": 280,
+        "wires": [
+            [
+                "d0d8aaa2630115e5",
+                "8c9c0508b9aaf45b",
+                "d716b46ec70a6dc7"
+            ]
+        ]
+    },
+    {
+        "id": "33b5cd56616d230a",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "Temp",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "Temperature=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 450,
+        "y": 380,
+        "wires": [
+            [
+                "abf85a8fddf77695",
+                "85e93b67010f0f4c",
+                "1e8c83103b4a8f00"
+            ]
+        ]
+    },
+    {
+        "id": "8b8b5ed00bddab77",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "change_csv_hum",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "\"'Humidity',\" & msg.payload",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1450,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d1582b80285785db",
+        "type": "simpletime",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "mydate": false,
+        "myymd": true,
+        "myyear": false,
+        "mymonth": false,
+        "mymonthn": false,
+        "mydom": false,
+        "mydoy": false,
+        "myday": false,
+        "myhourpm": false,
+        "myhour": false,
+        "mytime": false,
+        "mytimes": true,
+        "myminute": false,
+        "myminutes": false,
+        "mysecond": false,
+        "mymillis": false,
+        "myepoch": false,
+        "myrawdate": false,
+        "mypm": false,
+        "x": 1430,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5221241cebd72fcd",
+        "type": "flogger",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "logfile": "",
+        "inputchoice": "fullmsg",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "inputmoustache": "Recieved payload {{payload}} and topic {{topic}}",
+        "loglevel": "INFO",
+        "logconfig": "f014eac83c33b421",
+        "sendpane": "",
+        "x": 1410,
+        "y": 660,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "22390e8dfc227679",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "AirQuality=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 310,
+        "y": 160,
+        "wires": [
+            [
+                "270a78deb1a4ab7f"
+            ]
+        ]
+    },
+    {
+        "id": "5e0fbaf7c851a921",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "SoilMoisture",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "SoilMoisture=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 570,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2a3b30d584f9d62f",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "SoilMoisture=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 310,
+        "y": 80,
+        "wires": [
+            [
+                "5e0fbaf7c851a921"
+            ]
+        ]
+    },
+    {
+        "id": "ed1006f7490d757a",
+        "type": "serial in",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "serial": "",
+        "x": 70,
+        "y": 140,
+        "wires": [
+            [
+                "22390e8dfc227679",
+                "2a3b30d584f9d62f"
+            ]
+        ]
+    },
+    {
+        "id": "30db3fd74759fc9b",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "44db0a177c11cea0",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "gtype": "gage",
+        "title": "Soil Moisture1",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 760,
+        "y": 2000,
+        "wires": []
+    },
+    {
+        "id": "abf85a8fddf77695",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "308c817987aafca8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperature",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "40",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 850,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "270a78deb1a4ab7f",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "AirQuality",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "AirQuality=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 600,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "79adfbc6482c5100",
+        "type": "serial in",
+        "z": "6881c7bc66a39e34",
+        "name": "MEGA",
+        "serial": "de1b29ade7441583",
+        "x": 110,
+        "y": 320,
+        "wires": [
+            [
+                "94d79ba0069ad742",
+                "e90fccc05688136b",
+                "b8dba74a3d68fa5e",
+                "3845dc314120c9df",
+                "cc6003888c809bf1",
+                "a41c77b6ad345be5",
+                "6d0902b0ea57acb8",
+                "9a61d3895944ce50",
+                "5d42a205561f4fbc",
+                "d1585ce6f221062c"
+            ]
+        ]
+    },
+    {
+        "id": "e90fccc05688136b",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "SoilMoisture=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 110,
+        "y": 1600,
+        "wires": [
+            [
+                "8bf3a2cfbd16b6db"
+            ]
+        ]
+    },
+    {
+        "id": "8bf3a2cfbd16b6db",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "SoilMoisture=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 160,
+        "y": 1760,
+        "wires": [
+            [
+                "cd876226d044bc91",
+                "94012019c4b7c531"
+            ]
+        ]
+    },
+    {
+        "id": "d0d8aaa2630115e5",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "308c817987aafca8",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Humidity",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 840,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "cd876226d044bc91",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "if (msg.payload < 0) {\n  msg.payload = 0;\n}\nreturn msg;\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 2020,
+        "wires": [
+            [
+                "30db3fd74759fc9b"
+            ]
+        ]
+    },
+    {
+        "id": "8c9c0508b9aaf45b",
+        "type": "ui_chart",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "0e15aac8cefdd0d7",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "label": "HUMIDITY",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "dd HH:mm",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "10",
+        "ymax": "100",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": true,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 850,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "85e93b67010f0f4c",
+        "type": "ui_chart",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "0e15aac8cefdd0d7",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "TEMPERATURE",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "dd HH:mm",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 870,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1698dc2f8433c3fc",
+        "type": "csv",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "sep": ",",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 1410,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "53d2d5c92710586a",
+        "type": "serial out",
+        "z": "6881c7bc66a39e34",
+        "name": "MEGA4",
+        "serial": "1beeaf42ed8d302d",
+        "x": 720,
+        "y": 1200,
+        "wires": []
+    },
+    {
+        "id": "1aba7380eee0f771",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "testfunction",
+        "func": "\n\nmsg.payload = {humidity: msg.payload};\nreturn msg ;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 180,
+        "wires": [
+            [
+                "50eec5424c56d779"
+            ]
+        ]
+    },
+    {
+        "id": "d716b46ec70a6dc7",
+        "type": "delay",
+        "z": "6881c7bc66a39e34",
+        "name": "delay",
+        "pauseType": "rate",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 2,
+        "x": 650,
+        "y": 220,
+        "wires": [
+            [
+                "1aba7380eee0f771"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "50eec5424c56d779",
+        "type": "influxdb out",
+        "z": "6881c7bc66a39e34",
+        "influxdb": "a222b04e11ef2e47",
+        "name": "Humidity_db",
+        "measurement": "myHum",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "test",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1050,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "ea3f48603e9c42f2",
+        "type": "influxdb out",
+        "z": "6881c7bc66a39e34",
+        "influxdb": "0d3f80d1c76fa450",
+        "name": "temp",
+        "measurement": "myTemp",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1070,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "1e8c83103b4a8f00",
+        "type": "delay",
+        "z": "6881c7bc66a39e34",
+        "name": "delay",
+        "pauseType": "rate",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 2,
+        "x": 610,
+        "y": 480,
+        "wires": [
+            [
+                "747ba4c2174a7a14"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "747ba4c2174a7a14",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "testfunction",
+        "func": "\n\nmsg.payload = {temperature: msg.payload};\nreturn msg ;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 520,
+        "wires": [
+            [
+                "ea3f48603e9c42f2"
+            ]
+        ]
+    },
+    {
+        "id": "e5b1f3db503281ed",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "vcgencmd measure_temp",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Raspberry Pi Temp",
+        "x": 450,
+        "y": 800,
+        "wires": [
+            [
+                "8834470a3ec13244"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b8dba74a3d68fa5e",
+        "type": "delay",
+        "z": "6881c7bc66a39e34",
+        "name": "delay",
+        "pauseType": "rate",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 270,
+        "y": 720,
+        "wires": [
+            [
+                "e5b1f3db503281ed"
+            ]
+        ]
+    },
+    {
+        "id": "8834470a3ec13244",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "temp=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 660,
+        "y": 860,
+        "wires": [
+            [
+                "a4c22c3995a89ad2"
+            ]
+        ]
+    },
+    {
+        "id": "a4c22c3995a89ad2",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "a739265181886bc6",
+        "order": 3,
+        "width": "4",
+        "height": "3",
+        "gtype": "gage",
+        "title": "CPU TEMPERATURE",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 1080,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "4b63dcd83e418163",
+        "type": "ui_button",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "d379a2c2c33a7be7",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "HUMIDITY",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "num",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 270,
+        "y": 940,
+        "wires": [
+            [
+                "25e23aa9f17839c3"
+            ]
+        ]
+    },
+    {
+        "id": "25e23aa9f17839c3",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "influx -database 'Humidity' -execute 'SELECT * FROM myHum' -format csv > tl_`date +%d%m%Y_%H%M-%S-HUMIDITY`.csv ",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "MAKE",
+        "x": 470,
+        "y": 940,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "167ea1d12794f6ba",
+        "type": "ui_button",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "d379a2c2c33a7be7",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "TEMPERATURE",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "num",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 550,
+        "y": 1260,
+        "wires": [
+            [
+                "9b9ee472ba5d6a03"
+            ]
+        ]
+    },
+    {
+        "id": "9b9ee472ba5d6a03",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "influx -database 'temperature' -execute 'SELECT * FROM myTemp' -format csv > tl_`date +%d%m%Y_%H%M-%S-Temperature`.csv ",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "MAKE_TEMP",
+        "x": 620,
+        "y": 1140,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "6562908596296469",
+        "type": "influxdb out",
+        "z": "6881c7bc66a39e34",
+        "influxdb": "0d3f80d1c76fa450",
+        "name": "moist",
+        "measurement": "myMoist",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1010,
+        "y": 2160,
+        "wires": []
+    },
+    {
+        "id": "94012019c4b7c531",
+        "type": "delay",
+        "z": "6881c7bc66a39e34",
+        "name": "delay",
+        "pauseType": "rate",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 2,
+        "x": 430,
+        "y": 2180,
+        "wires": [
+            [
+                "1597887695dd57bb"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "1597887695dd57bb",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "testfunction",
+        "func": "\n\nmsg.payload = {moisture: msg.payload};\nreturn msg ;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 2140,
+        "wires": [
+            [
+                "6562908596296469"
+            ]
+        ]
+    },
+    {
+        "id": "cd4fd6fbca17fad1",
+        "type": "ui_button",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "d379a2c2c33a7be7",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "Moisture1",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "num",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 820,
+        "y": 1120,
+        "wires": [
+            [
+                "59feca6c03f2d372"
+            ]
+        ]
+    },
+    {
+        "id": "59feca6c03f2d372",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "influx -database 'moist' -execute 'SELECT * FROM myMoist' -format csv > tl_`date +%d%m%Y_%H%M-%S-Moisture`.csv ",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "MAKE_MOIST_1",
+        "x": 1070,
+        "y": 1100,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "e42e51c90dc78dd3",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "if (msg.payload < 0) {\n  msg.payload = 0;\n}\nreturn msg;\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 1600,
+        "wires": [
+            [
+                "bcad68258e20c1f2"
+            ]
+        ]
+    },
+    {
+        "id": "bcad68258e20c1f2",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "dfb1f955897eb056",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "gtype": "gage",
+        "title": "Soil Moisture2",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 740,
+        "y": 1600,
+        "wires": []
+    },
+    {
+        "id": "f6038f92641bc4da",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "if (msg.payload < 0) {\n  msg.payload = 0;\n}\nreturn msg;\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 1800,
+        "wires": [
+            [
+                "8d21aaf1449f0d66"
+            ]
+        ]
+    },
+    {
+        "id": "8d21aaf1449f0d66",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "8d0384e8450d5d01",
+        "order": 1,
+        "width": "0",
+        "height": "0",
+        "gtype": "gage",
+        "title": "Soil Moisture3",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 800,
+        "y": 1760,
+        "wires": []
+    },
+    {
+        "id": "66bd076e92c27970",
+        "type": "ui_button",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "d379a2c2c33a7be7",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "Moisture2",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "num",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 820,
+        "y": 1300,
+        "wires": [
+            [
+                "2b01bfc2577a9730"
+            ]
+        ]
+    },
+    {
+        "id": "2b01bfc2577a9730",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "influx -database 'moist' -execute 'SELECT * FROM myMoist' -format csv > tl_`date +%d%m%Y_%H%M-%S-Moisture`.csv ",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "MAKE_MOIST_2",
+        "x": 1070,
+        "y": 1300,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "a8f7dec675b8b63e",
+        "type": "ui_button",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "d379a2c2c33a7be7",
+        "order": 3,
+        "width": "0",
+        "height": "0",
+        "passthru": false,
+        "label": "Moisture3",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "num",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 820,
+        "y": 1460,
+        "wires": [
+            [
+                "9e80efb9ebab683f"
+            ]
+        ]
+    },
+    {
+        "id": "9e80efb9ebab683f",
+        "type": "exec",
+        "z": "6881c7bc66a39e34",
+        "command": "influx -database 'moist' -execute 'SELECT * FROM myMoist' -format csv > tl_`date +%d%m%Y_%H%M-%S-Moisture`.csv ",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "MAKE_MOIST_3",
+        "x": 1070,
+        "y": 1460,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "7b16245a69ddb36b",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "9f8b81628a7783d9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "pH",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 10,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 1670,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "3845dc314120c9df",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "PH1=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1110,
+        "y": 940,
+        "wires": [
+            [
+                "9cd8c9d426eae6c6"
+            ]
+        ]
+    },
+    {
+        "id": "9cd8c9d426eae6c6",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "PH1=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1360,
+        "y": 1080,
+        "wires": [
+            [
+                "7b16245a69ddb36b"
+            ]
+        ]
+    },
+    {
+        "id": "cc6003888c809bf1",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "PH2=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1230,
+        "y": 1200,
+        "wires": [
+            [
+                "efb66ad1d35cef8c"
+            ]
+        ]
+    },
+    {
+        "id": "efb66ad1d35cef8c",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "PH2=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1480,
+        "y": 1340,
+        "wires": [
+            [
+                "819ea6a911d08f01"
+            ]
+        ]
+    },
+    {
+        "id": "819ea6a911d08f01",
+        "type": "ui_gauge",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "group": "9f8b81628a7783d9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Simulated pH",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 10,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "className": "",
+        "x": 1760,
+        "y": 1400,
+        "wires": []
+    },
+    {
+        "id": "a41c77b6ad345be5",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "SoilMoisture3=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 110,
+        "y": 1900,
+        "wires": [
+            [
+                "fd5dcf7b70728361"
+            ]
+        ]
+    },
+    {
+        "id": "fd5dcf7b70728361",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "SoilMoisture3=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 160,
+        "y": 2060,
+        "wires": [
+            [
+                "f6038f92641bc4da"
+            ]
+        ]
+    },
+    {
+        "id": "6d0902b0ea57acb8",
+        "type": "switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "SoilMoisture2=",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 130,
+        "y": 2260,
+        "wires": [
+            [
+                "ee2fdf85b8396871"
+            ]
+        ]
+    },
+    {
+        "id": "ee2fdf85b8396871",
+        "type": "change",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "SoilMoisture2=",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 180,
+        "y": 2420,
+        "wires": [
+            [
+                "e42e51c90dc78dd3"
+            ]
+        ]
+    },
+    {
+        "id": "9a61d3895944ce50",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "// Define the minimum desired pH value and soil moisture value\nconst MIN_PH = 6.5;\nconst MIN_SOIL_MOISTURE = 50;\n\n// Check if the pH and soil moisture values are below the desired values\nif (msg.payload.pH < MIN_PH || msg.payload.soilMoisture < MIN_SOIL_MOISTURE) {\n  // Set the notification message and severity level\n  msg.payload = {\n    message: 'The pH or soil moisture value is below the desired level for plants.',\n    severity: 'warning'\n  };\n  return msg;\n}\n\n// If the pH and soil moisture values are within the desired range, do nothing\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 800,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5d42a205561f4fbc",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "// Define the minimum desired pH value and soil moisture value\nconst MIN_PH = 6.5;\nconst MIN_SOIL_MOISTURE = 50;\n\n// Check if the pH and soil moisture values are below the desired values\nif (msg.payload.pH < MIN_PH || msg.payload.soilMoisture < MIN_SOIL_MOISTURE) {\n  // Set the notification message and severity level\n  msg.payload = {\n    message: 'The pH or soil moisture value is below the desired level for plants.',\n    severity: 'warning'\n  };\n  return msg;\n}\n\n// If the pH and soil moisture values are within the desired range, do nothing\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d1585ce6f221062c",
+        "type": "function",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "func": "// Define the minimum desired pH value and soil moisture value\nconst MIN_PH = 6.5;\nconst MIN_SOIL_MOISTURE = 50;\n\n// Check if the pH and soil moisture values are below the desired values\nif (msg.payload.pH < MIN_PH || msg.payload.soilMoisture < MIN_SOIL_MOISTURE) {\n  // Set the notification message and severity level\n  msg.payload = {\n    message: 'The pH or soil moisture value is below the desired level for plants.',\n    severity: 'warning'\n  };\n  return msg;\n}\n\n// If the pH and soil moisture values are within the desired range, do nothing\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "934b1314f25aed27",
+        "type": "ui_switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "label": "Nutrient Pump Switch",
+        "tooltip": "",
+        "group": "a739265181886bc6",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "3",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "4",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 300,
+        "y": 1080,
+        "wires": [
+            [
+                "562fd1ff74dc9cba"
+            ]
+        ]
+    },
+    {
+        "id": "50c353d5881ce9a8",
+        "type": "ui_switch",
+        "z": "6881c7bc66a39e34",
+        "name": "",
+        "label": "Fan Switch",
+        "tooltip": "",
+        "group": "a739265181886bc6",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "topic",
+        "topicType": "msg",
+        "style": "",
+        "onvalue": "5",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "6",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "animate": false,
+        "className": "",
+        "x": 270,
+        "y": 1140,
+        "wires": [
+            [
+                "562fd1ff74dc9cba"
+            ]
+        ]
+    }
+]
